@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8"/>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+		<script src="js/kickstart.js"></script>
+		<link rel="stylesheet" href="css/kickstart.css" media="all" />
+		<link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,300,700' rel='stylesheet' type='text/css'/>
+		<style type="text/css">
+		html, body {
+			margin: 0;
+			padding: 0;
+		}
+		body {
+			font-family: 'Source Sans Pro', sans-serif;
+		}
+		header {
+			border-bottom: solid 10px black;
+		}
+		header h1 {
+			margin-top: 40px;
+			margin-bottom: 0;
+		}
+		header h1, main, footer {
+			margin-left: 20%;
+			margin-right: 20%;
+		}
+		footer {
+			color: gray;
+			border-top: solid 2px gray;
+
+		}
+		main {
+			margin-top: 30px;
+		}
+		</style>
+	</head>
+
+	<body>
+		<header>
+			<h1>NetteNet</h1>
+		</header>
+		
+		<main>
+			<ul class="tabs left">
+				<li><a href="#tabr1">Global settings</a></li>
+				<li><a href="#tabr2">Tab2</a></li>
+				<li><a href="#tabr3">Tab3</a></li>
+			</ul>
+
+			<div id="tabr1" class="tab-content">
+				<form>
+					<fieldset>
+						<legend>Personal settings</legend>
+						<p><label for="u_firstname">First name</label> <input type="text" id="u_firstname" name="u_firstname" /></p>
+						<p><label for="u_name">Name</label> <input type="text" id="u_name" name="u_name" /></p>
+						<p><label for="u_country">Country</label> <input type="text" id="u_country" name="u_country" /></p>
+					</fieldset>
+				</form>
+			</div>
+			<div id="tabr2" class="tab-content">Tab2</div>
+			<div id="tabr3" class="tab-content">Tab3</div>
+		</main>
+
+		<footer>
+			Imaginated &amp; created by <cite>David Baumgartner</cite>, distributed under <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache 2.0</a>.
+		</footer>
+	</body>
+</html>
