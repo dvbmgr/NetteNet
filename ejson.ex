@@ -7,7 +7,7 @@ defmodule EJSON do
 	end
 
 	def decode(content) do
-		{ :ok, ctnt } = :json.decode(content)
+		{ :ok, ctnt } = :json.decode(String.replace (to_string content), "\n", "")
 		clean(ctnt)
 	end 
 
