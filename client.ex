@@ -14,7 +14,7 @@ defmodule Client do
 		IO.puts ("Trying to start client on port " <> to_string local_port)
 		case :gen_udp.open(local_port) do 
 			{ :ok, socket } ->
-				IO.puts "Connected."
+				IO.puts "Started."
 				loop(socket, dest_ip, dest_port)
 			_ -> 
 				IO.puts "Failed."
@@ -60,4 +60,5 @@ defmodule Client do
 	defp send_msg(socket, ip, port, msg) do
 		:gen_udp.send(socket, ip, port, msg)
 	end
+	
 end
