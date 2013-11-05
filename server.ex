@@ -17,10 +17,6 @@ defmodule Server do
 				loop(socket)
 			_ ->
 				loop(socket)
-		after
-			50000 ->
-				IO.puts "Timeout"
-				loop(socket)
 		end
 	end
 

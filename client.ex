@@ -1,26 +1,38 @@
 defmodule Client do
 
 	def start_client() do
-		dest_ip = list_to_tuple(Enum.map((String.split (IO.gets "IP to connect to ? "), "."), (fn (s) -> case String.to_integer s do { n, _ } -> n end end)))
-		{ dest_port, _ } = String.to_integer (IO.gets "Which port ? ")
+		dest_ip = list_to_tuple(Enum.map((String.split (to_string (IO.gets "IP to connect to ? ")), "."), (fn (s) -> case String.to_integer s do { n, _ } -> n end end)))
+		{ dest_port, _ } = String.to_integer (to_string (IO.gets "Which port ? "))
 		start_client(dest_ip, dest_port)
 	end
 
 	def start_client(dest_ip, dest_port) do
-		port = (Settings.get_setting :port) + 1
-		IO.puts "Connecting… "
-		{ ok, socket } = :gen_udp.open(port)
-		loop(socket, dest_ip, dest_port)
+		start_client(dest_ip, dest_port, (Settings.get_setting :port) + 1)
 	end
 
+	def start_client(dest_ip, dest_port, local_port) do
+		IO.puts ("Trying to start client on port " <> to_string local_port)
+		case :gen_udp.open(local_port) do 
+			{ :ok, socket } ->
+				IO.puts "Connected."
+				loop(socket, dest_ip, dest_port)
+			_ -> 
+				IO.puts "Failed."
+				start_client(dest_ip, dest_port, local_port+1)
+		end 
+	end
+
+
 	defp loop(socket, ip, port) do 
-		ask = String.strip (to_string (IO.gets "load> "))
-		case ask do
+		ask = String.split (String.strip (to_string (IO.gets "> ")))
+		case Enum.at ask, 0 do
+			"load" ->
+				send_wait_loop socket, ip, port, [cmd: "load", res: (Enum.at ask, 1)]
 			"end" ->
-				send_msg socket, ip, port, "end"
+				IO.puts "Goodbye."
+				exit :normal
 			_ ->
-				send_msg socket, ip, port, ("{\"cmd\":\"load\",\"res\":\""<>ask<>"\"}")
-				wait_for_response socket
+				IO.puts "Invalid query."
 				loop socket, ip, port
 		end
 
@@ -34,8 +46,15 @@ defmodule Client do
 				wait_for_response socket
 		after
 			20000 ->
-				IO.puts "Timeout"
+				IO.puts "Sorry, timeout."
+				exit :lostconnexion
 		end
+	end
+
+	defp send_wait_loop(socket, ip, port, message) do 
+		send_msg socket, ip, port, EJSON.encode(message)
+		wait_for_response socket
+		loop socket, ip, port
 	end
 
 	defp send_msg(socket, ip, port, msg) do

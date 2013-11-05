@@ -11,6 +11,40 @@ defmodule EJSON do
 		clean(ctnt)
 	end 
 
+	defp encode_(content) when is_bitstring(content) do 
+		"\"" <> content <> "\""
+	end
+
+	defp encode_(content) when is_number(content) do 
+		to_string content
+	end 
+
+	defp encode_(content) when is_list(content) do 
+		ctnt = Enum.join(Enum.map(content, fn (x) -> to_string(encode_(x)) end), ",")
+		if (Enum.all?(content, fn (x) -> is_tuple x end)) do
+			"{" <> ctnt <> "}"
+		else
+			"[" <> ctnt <> "]"
+		end
+	end
+
+	defp encode_({key, value}) when is_atom(key) do 
+		encode_({(to_string key), value})
+	end
+
+	defp encode_({key, value}) do
+		(encode_ key) <> ":" <> (encode_ value)
+	end
+
+	defp encode_(content) do 
+		encode_ (to_string content)
+	end
+
+	def encode(content) do 
+		encode_(content)
+	end
+
+
 	def search_for(content, key) do 
 		Enum.at (Keyword.get_values content, key), 0
 	end
