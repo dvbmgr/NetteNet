@@ -45,4 +45,4 @@ THE SOFTWARE.
 
 ## Information
 
-This makes use of erlang-json, see json/README.md for more informations.
+This makes use of [erlang-json](https://github.com/hio/erlang-json). You have to put in in /json/.
