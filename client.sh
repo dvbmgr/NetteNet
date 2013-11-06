@@ -1,1 +1,0 @@
-iex -pa json/ebin/ -r ejson.ex -r settings.ex -r handler.ex -r client.ex start_client.ex
