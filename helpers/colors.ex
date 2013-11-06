@@ -19,3 +19,19 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
+
+defmodule Colors do
+	
+	defp attr_to_num(s) do
+		Enum.at (Keyword.get_values [black: 0, red: 1, green: 2, yellow: 3, blue: 4, magenta: 5, cyan: 6, white: 7], s), 0
+	end
+
+	def color(color, text) do
+		"\e[3#{inspect attr_to_num(color)}m#{text}\e[0m"
+	end
+
+	def bgcolor(color, text) do 
+		"\e[4#{inspect attr_to_num(color)}m#{text}\e[0m"
+	end
+
+end

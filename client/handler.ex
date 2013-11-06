@@ -22,47 +22,15 @@
 
 defmodule Handler do
 	
-	def answer(address, port, msg) do
-		request = EJSON.decode msg
-		case EJSON.search_for request, :cmd do 
-			"load" ->
-				case File.read ("#{Settings.get_setting :publicdir}#{(Path.basename(String.strip (EJSON.search_for request, :res)))}") do 
-					{ :ok, lol } ->
-						output :ok, [status: 200, content: lol]
-					_ ->
-						error(404)
-				end
-			"login" ->
-				case Users.authenticate((EJSON.search_for request, :sessiontoken), (EJSON.search_for request, :username), (EJSON.search_for request, :password)) do 
-					{ :ok } ->
-						output :ok, [status: 200, content: "Successfully authenticated"]
-					{ :error, :unvalidlogin } ->
-						error(401, "Login failed")
-					{ :error, :alreadyauthenticated} ->
-						error(400, "Already authtenticated")
-				end
-			_ ->
-				error(404)
+	def read(address, port, msg) do
+		response = EJSON.decode msg
+		case EJSON.search_for response, :status do 
+			200 ->
+				IO.puts (EJSON.search_for response, :content)
+				Inform.ok
+			n ->
+				Inform.error "Error[#{inspect n}]: #{EJSON.search_for response, :message}."
 		end
-	end
-
-	defp error(n) do 
-		case n do 
-			404 -> 
-				error(n, "Not found")
-			500 ->
-				error(n, "Internal error")
-			_ ->
-				error(n, "Unknown error")
-		end
-	end
-
-	defp error(status, message) do 
-		output :error, [status: status, message: message]
-	end
-
-	defp output(is_ok, message) do 
-		{ is_ok, EJSON.encode message }
 	end
 	
 end

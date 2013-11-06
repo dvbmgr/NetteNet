@@ -24,18 +24,20 @@ defmodule Server do
 	def start_server() do
 		port = Settings.get_setting :port
 		ip = Settings.get_setting :ip
-		IO.puts ("Starting server on " <> (Enum.join(Enum.map(ip, fn (x) -> integer_to_binary x end), ".")) <> ":" <> integer_to_binary(port))
+		Inform.warning "Starting server on #{Enum.join(Enum.map(ip, fn (x) -> integer_to_binary x end), ".")}:#{inspect port}"
 		{ :ok, socket } = :gen_udp.open(port, [{ :ip, list_to_tuple(ip) }])
 		loop(socket)
 	end
 
 	defp loop(socket) do 
 		receive do
-			{ udp, socket, address, port, "end" } ->
-				IO.puts "Left"
 			{ udp, socket, address, port, msg } ->
-				IO.puts ("Recieved "<>to_string msg)
-				handle(socket, address, port, msg)
+				case handle(socket, address, port, msg) do 
+					{ :ok, ctnt } ->
+						Inform.log_ok "#{msg} => #{ctnt}"
+					{ :error, ctnt } ->
+						Inform.log_error "#{msg} => #{ctnt}"
+				end
 				loop(socket)
 			_ ->
 				loop(socket)
@@ -43,7 +45,12 @@ defmodule Server do
 	end
 
 	defp handle(socket, address, port, msg) do
-		:gen_udp.send(socket, address, port, to_string Handler.answer(address, port, msg))
+		answer = Handler.answer(address, port, msg)
+		case answer do 
+			{ _, ctnt } ->
+				:gen_udp.send(socket, address, port, to_string ctnt)
+		end
+		answer
 	end
 	
 end

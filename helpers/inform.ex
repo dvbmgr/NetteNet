@@ -1,4 +1,3 @@
-#!/bin/bash
 # The MIT License (MIT)
 
 # Copyright (c) 2013 David Baumgartner
@@ -21,32 +20,46 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-CC="iex"
+defmodule Inform do
+	
+	def ok() do 
+		ok("Ok.")
+	end
 
-JSON="json/ebin/"
-SHA2="sha2/ebin/"
-UCRYPTO="ucrypto/ebin/"
+	def error() do 
+		error("Error.")
+	end
 
-SETTINGS="helpers/settings.ex"
-EJSON="helpers/ejson.ex"
-COLORS="helpers/colors.ex"
-INFORM="helpers/inform.ex"
-USERS="helpers/users.ex"
+	def warning() do
+		warning("Warning!")
+	end
 
-RSA="crypto/rsa.ex"
+	def ok(msg) do 
+		IO.puts Colors.color(:green, msg)
+	end
 
-CLIENT_HANDLER="client/handler.ex"
-SERVER_HANDLER="server/handler.ex"
+	def error(msg) do 
+		IO.puts Colors.color(:red, msg)
+	end
 
-CLIENT="client/client.ex"
-SERVER="server/server.ex"
+	def warning(msg) do 
+		IO.puts Colors.color(:yellow, msg)
+	end
 
-CLIENT_REQUIREMENTS="-pa $JSON -pa $SHA2 -pa $UCRYPTO -r $SETTINGS -r $EJSON -r $COLORS -r $INFORM -r $CLIENT_HANDLER -r $CLIENT"
-SERVER_REQUIREMENTS="-pa $JSON -pa $SHA2 -pa $UCRYPTO  -r $SETTINGS -r $EJSON -r $COLORS -r $INFORM -r $USERS -r $SERVER_HANDLER -r $SERVER"
+	def log_ok(msg) do 
+		IO.puts "[#{prepare_log}] #{Colors.color :green, "ok"}: #{msg}"
+	end
 
+	def log_error(msg) do 
+		IO.puts "[#{prepare_log}] #{Colors.color :red, "error"}: #{msg}"
+	end
 
-if [ "$1" == "client" ]; then
-	eval "$CC $CLIENT_REQUIREMENTS client/start.ex"
-elif [ "$1" == "server" ]; then
-	eval "$CC $SERVER_REQUIREMENTS server/start.ex"
-fi
+	def log_warning(msg) do 
+		IO.puts "[#{prepare_log}] #{Colors.color :yellow, "warning"}: #{msg}"
+	end
+
+	defp prepare_log() do 
+		{{ year, month, day }, { hour, minute, second }} = :erlang.localtime
+		"#{inspect day}/#{inspect month}/#{inspect year} #{inspect hour}:#{inspect minute}:#{inspect second}"
+	end
+end

@@ -20,49 +20,41 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-defmodule Handler do
+defmodule Users do
 	
-	def answer(address, port, msg) do
-		request = EJSON.decode msg
-		case EJSON.search_for request, :cmd do 
-			"load" ->
-				case File.read ("#{Settings.get_setting :publicdir}#{(Path.basename(String.strip (EJSON.search_for request, :res)))}") do 
-					{ :ok, lol } ->
-						output :ok, [status: 200, content: lol]
-					_ ->
-						error(404)
-				end
-			"login" ->
-				case Users.authenticate((EJSON.search_for request, :sessiontoken), (EJSON.search_for request, :username), (EJSON.search_for request, :password)) do 
-					{ :ok } ->
-						output :ok, [status: 200, content: "Successfully authenticated"]
-					{ :error, :unvalidlogin } ->
-						error(401, "Login failed")
-					{ :error, :alreadyauthenticated} ->
-						error(400, "Already authtenticated")
-				end
-			_ ->
-				error(404)
+	def authenticated?(session_token) do
+		sessions = EJSON.read_file (Settings.get_setting :sessiondir)
+		Enum.any?(
+			Enum.map(sessions, 
+					fn (session) ->
+						vals = Keyword.get_values session, :sessiontoken
+						Enum.any?(vals, fn (val) -> val == session_token end)
+					end)
+			)
+	end
+
+	def authenticate(session_token, user, password) do
+		if not authenticated?(session_token) do
+			sessions = EJSON.read_file (Settings.get_setting :sessiondir)
+			if correct_login?(user, password) do 
+				EJSON.write_file((Settings.get_setting :sessiondir), (sessions ++ [[sessiontoken: session_token, user: user]]))
+				{ :ok }
+			else
+				{ :error, :unvalidlogin }
+			end
+		else
+			{ :error, :alreadyauthenticated }
 		end
 	end
 
-	defp error(n) do 
-		case n do 
-			404 -> 
-				error(n, "Not found")
-			500 ->
-				error(n, "Internal error")
-			_ ->
-				error(n, "Unknown error")
-		end
+	defp correct_login?(username, password) do 
+		Inform.warning :hmac.hexlify :erlsha2.sha512(password)
+		users = EJSON.read_file (Settings.get_setting :userdb)
+		Enum.any?(
+			Enum.map(users, fn (user) ->
+				((Enum.at (Keyword.get_values user, :username), 0) == username) and ((Enum.at (Keyword.get_values user, :password), 0) == (to_string (:hmac.hexlify :erlsha2.sha512(password))))
+			end)
+		)
 	end
 
-	defp error(status, message) do 
-		output :error, [status: status, message: message]
-	end
-
-	defp output(is_ok, message) do 
-		{ is_ok, EJSON.encode message }
-	end
-	
 end

@@ -11,29 +11,32 @@ defmodule Client do
 	end
 
 	def start_client(dest_ip, dest_port, local_port) do
-		IO.puts ("Trying to start client on port " <> to_string local_port)
+		Inform.warning "Trying to start client on port #{inspect local_port}..."
 		case :gen_udp.open(local_port) do 
 			{ :ok, socket } ->
-				IO.puts "Started."
-				loop(socket, dest_ip, dest_port)
+				Inform.ok "Started."
+				session_token = :base64.encode(to_string :random.uniform(round 1.0e100))
+				loop socket, session_token, dest_ip, dest_port
 			_ -> 
-				IO.puts "Failed."
-				start_client(dest_ip, dest_port, local_port+1)
+				Inform.error "Failed."
+				start_client dest_ip, dest_port, local_port+1
 		end 
 	end
 
 
-	defp loop(socket, ip, port) do 
+	defp loop(socket, session_token, ip, port) do 
 		ask = String.split (String.strip (to_string (IO.gets "> ")))
 		case Enum.at ask, 0 do
 			"load" ->
-				send_wait_loop socket, ip, port, [cmd: "load", res: (Enum.at ask, 1)]
+				send_wait_loop socket, session_token, ip, port, [cmd: "load", res: (Enum.at ask, 1), sessiontoken: session_token]
+			"login" ->
+				send_wait_loop socket, session_token, ip, port, [cmd: "login", username: (Enum.at ask, 1), password: (Enum.at ask, 2), sessiontoken: session_token]
 			"end" ->
-				IO.puts "Goodbye."
+				Inform.ok "Goodbye."
 				exit :normal
 			_ ->
-				IO.puts "Invalid query."
-				loop socket, ip, port
+				Inform.error "Invalid query."
+				loop socket, session_token, ip, port
 		end
 
 	end
@@ -41,20 +44,19 @@ defmodule Client do
 	defp wait_for_response(socket) do 
 		receive do
 			{ udp, socket, address, port, msg } ->
-				IO.puts msg
+				Handler.read address, port, msg
 			_ ->
 				wait_for_response socket
 		after
 			20000 ->
-				IO.puts "Sorry, timeout."
-				exit :lostconnexion
+				Inform.error "Sorry, timeout."
 		end
 	end
 
-	defp send_wait_loop(socket, ip, port, message) do 
+	defp send_wait_loop(socket, session_token, ip, port, message) do 
 		send_msg socket, ip, port, EJSON.encode(message)
 		wait_for_response socket
-		loop socket, ip, port
+		loop socket, session_token, ip, port
 	end
 
 	defp send_msg(socket, ip, port, msg) do

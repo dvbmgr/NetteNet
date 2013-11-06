@@ -43,6 +43,8 @@ THE SOFTWARE.
 ```
 
 
-## Information
+## Requirements
 
-This makes use of [erlang-json](https://github.com/hio/erlang-json). You have to put in in /json/.
+- [erlang-json](https://github.com/hio/erlang-json) in /json/;
+- [erlsha2](https://github.com/vinoski/erlsha2) in /sha2/;
+- [erlang-ucrypto](https://github.com/ahf/erlang-ucrypto) in /ucrypto/.

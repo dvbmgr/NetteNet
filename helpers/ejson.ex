@@ -22,10 +22,14 @@
 
 defmodule EJSON do
 	def read_file(name) do
-		case File.read(name) do 
-			{ :ok, content } ->
-				decode(content)
-		end
+		if not File.exists?(name) do
+			File.write!(name, "[]")
+		end 
+		decode(File.read!(name))
+	end
+
+	def write_file(name, datas) do
+		File.write!(name, encode(datas))
 	end
 
 	def decode(content) do
@@ -48,9 +52,9 @@ defmodule EJSON do
 	defp encode_(content) when is_list(content) do 
 		ctnt = Enum.join(Enum.map(content, fn (x) -> to_string(encode_(x)) end), ",")
 		if (Enum.all?(content, fn (x) -> is_tuple x end)) do
-			"{" <> ctnt <> "}"
+			"{#{ctnt}}"
 		else
-			"[" <> ctnt <> "]"
+			"[#{ctnt}]"
 		end
 	end
 
@@ -78,6 +82,10 @@ defmodule EJSON do
 				{ list_to_atom(a), clean(b) } 
 			end)
 		end)
+	end
+
+	defp clean(n) when is_list(n) do
+		Enum.map(n, fn (x) -> clean x end)
 	end
 
 	defp clean(n) do 
