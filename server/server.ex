@@ -21,17 +21,18 @@
 # THE SOFTWARE.
 
 defmodule Server do
+	
 	def start_server() do
 		port = Settings.get_setting :port
 		ip = Settings.get_setting :ip
-		Inform.warning "Starting server on #{Enum.join(Enum.map(ip, fn (x) -> integer_to_binary x end), ".")}:#{inspect port}"
+		Inform.ok "Starting server on #{Enum.join(Enum.map(ip, fn (x) -> integer_to_binary x end), ".")}:#{inspect port}"
 		{ :ok, socket } = :gen_udp.open(port, [{ :ip, list_to_tuple(ip) }])
 		loop(socket)
 	end
 
 	defp loop(socket) do 
 		receive do
-			{ udp, socket, address, port, msg } ->
+			{ :udp, socket, address, port, msg } ->
 				case handle(socket, address, port, msg) do 
 					{ :ok, ctnt } ->
 						Inform.log_ok "#{msg} => #{ctnt}"

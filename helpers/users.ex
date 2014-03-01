@@ -27,11 +27,19 @@ defmodule Users do
 		Enum.any?(
 			Enum.map(sessions, 
 					fn (session) ->
-						vals = Keyword.get_values session, :sessiontoken
-						Enum.any?(vals, fn (val) -> val == session_token end)
+						Keyword.get session, :sessiontoken == session_token
 					end)
 			)
 	end
+
+	def get_username(session_token) do
+		sessions = EJSON.read_file (Settings.get_setting :sessiondir)
+		Keyword.get (Enum.at(Enum.filter(sessions,
+					fn (session) ->
+						Keyword.get session, :sessiontoken == session_token
+					end), 0)), :user
+	end
+
 
 	def authenticate(session_token, user, password) do
 		if not authenticated?(session_token) do
@@ -48,11 +56,10 @@ defmodule Users do
 	end
 
 	defp correct_login?(username, password) do 
-		Inform.warning :hmac.hexlify :erlsha2.sha512(password)
 		users = EJSON.read_file (Settings.get_setting :userdb)
 		Enum.any?(
 			Enum.map(users, fn (user) ->
-				((Enum.at (Keyword.get_values user, :username), 0) == username) and ((Enum.at (Keyword.get_values user, :password), 0) == (to_string (:hmac.hexlify :erlsha2.sha512(password))))
+				(Keyword.get user, :username == username) and (Keyword.get user, :password == password)
 			end)
 		)
 	end

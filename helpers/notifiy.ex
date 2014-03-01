@@ -20,14 +20,18 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-defmodule RSA do
-
-	def generateKeys() do
-		:crypto.generate_key(dh)
+defmacro Notify do
+	
+	def notify(username, message) do
+		notifications = EJSON.read_file (Settings.get_setting :notifiydir)
+		EJSON.write_file((Settings.get_setting :notifiydir), (notifications ++ [[username: username, message: message]]))
 	end
 
-	def encrypt(text, key) do 
-		:crypto.block_encrypt()
+	def get_notifications(username) do
+		notifications = EJSON.read_file (Settings.get_setting :notifiydir)
+		Enum.filter(notifications, fn (k) ->
+				Keyword.get k, :username == username
+			end)
 	end
 
 end

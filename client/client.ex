@@ -7,19 +7,15 @@ defmodule Client do
 	end
 
 	def start_client(dest_ip, dest_port) do
-		start_client(dest_ip, dest_port, (Settings.get_setting :port) + 1)
-	end
-
-	def start_client(dest_ip, dest_port, local_port) do
-		Inform.warning "Trying to start client on port #{inspect local_port}..."
-		case :gen_udp.open(local_port) do 
+		case :gen_udp.open(0) do 
 			{ :ok, socket } ->
-				Inform.ok "Started."
+				Inform.ok "Started client on port #{inspect (case :inet.port(socket), do: ({ _, port } -> port))}."
+				:random.seed(:erlang.now())
 				session_token = :base64.encode(to_string :random.uniform(round 1.0e100))
 				loop socket, session_token, dest_ip, dest_port
 			_ -> 
 				Inform.error "Failed."
-				start_client dest_ip, dest_port, local_port+1
+				start_client dest_ip, dest_port
 		end 
 	end
 
@@ -30,7 +26,10 @@ defmodule Client do
 			"load" ->
 				send_wait_loop socket, session_token, ip, port, [cmd: "load", res: (Enum.at ask, 1), sessiontoken: session_token]
 			"login" ->
-				send_wait_loop socket, session_token, ip, port, [cmd: "login", username: (Enum.at ask, 1), password: (Enum.at ask, 2), sessiontoken: session_token]
+				send_wait_loop socket, session_token, ip, port, [cmd: "login", username: (Enum.at ask, 1), password: (to_string (:hmac.hexlify :erlsha2.sha512((Enum.at ask, 2)))), sessiontoken: session_token]
+			"gen_password" ->
+				IO.puts (to_string (:hmac.hexlify :erlsha2.sha512((Enum.at ask, 1))))
+				loop socket, session_token, ip, port
 			"end" ->
 				Inform.ok "Goodbye."
 				exit :normal

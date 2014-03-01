@@ -71,7 +71,7 @@ defmodule EJSON do
 	end
 
 	def search_for(content, key) do 
-		Enum.at (Keyword.get_values content, key), 0
+		Keyword.get content, key
 	end
 
 	defp clean({ n }) when is_list(n) do

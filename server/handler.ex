@@ -24,44 +24,52 @@ defmodule Handler do
 	
 	def answer(address, port, msg) do
 		request = EJSON.decode msg
+		#user = Users.get_username(EJSON.search_for request, :sessiontoken)
+		user = "dab"
 		case EJSON.search_for request, :cmd do 
 			"load" ->
 				case File.read ("#{Settings.get_setting :publicdir}#{(Path.basename(String.strip (EJSON.search_for request, :res)))}") do 
 					{ :ok, lol } ->
-						output :ok, [status: 200, content: lol]
+						output user, :ok, [status: 200, content: lol]
 					_ ->
-						error(404)
+						error user, 404
 				end
 			"login" ->
 				case Users.authenticate((EJSON.search_for request, :sessiontoken), (EJSON.search_for request, :username), (EJSON.search_for request, :password)) do 
 					{ :ok } ->
-						output :ok, [status: 200, content: "Successfully authenticated"]
+						output user, :ok, [status: 200, content: "Successfully authenticated"]
 					{ :error, :unvalidlogin } ->
-						error(401, "Login failed")
+						error user, 401
 					{ :error, :alreadyauthenticated} ->
-						error(400, "Already authtenticated")
+						error user, 400
 				end
 			_ ->
-				error(404)
+				error user, 404
 		end
 	end
 
-	defp error(n) do 
-		case n do 
-			404 -> 
-				error(n, "Not found")
-			500 ->
-				error(n, "Internal error")
-			_ ->
-				error(n, "Unknown error")
-		end
+	defp error(user, n) do 
+		error(user, n,
+			case n do 
+				400 ->
+					"Already authtenticated"
+				401 ->
+					"Login failed"
+				404 -> 
+					"Not found"
+				500 ->
+					"Internal error"
+				_ ->
+					"Unknown error"
+			end)
 	end
 
-	defp error(status, message) do 
-		output :error, [status: status, message: message]
+	defp error(user, status, message) do 
+		output user, :error, [status: status, message: message]
 	end
 
-	defp output(is_ok, message) do 
+	defp output(user, is_ok, message) do 
+		message = Keyword.update(message, :notifications, Notify.get_notifications(user))
 		{ is_ok, EJSON.encode message }
 	end
 	

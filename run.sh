@@ -21,17 +21,17 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-CC="iex"
+CC="elixirc"
 
 JSON="json/ebin/"
 SHA2="sha2/ebin/"
-UCRYPTO="ucrypto/ebin/"
 
 SETTINGS="helpers/settings.ex"
 EJSON="helpers/ejson.ex"
 COLORS="helpers/colors.ex"
 INFORM="helpers/inform.ex"
 USERS="helpers/users.ex"
+NOTIFY="helpers/notify.ex"
 
 RSA="crypto/rsa.ex"
 
@@ -41,12 +41,15 @@ SERVER_HANDLER="server/handler.ex"
 CLIENT="client/client.ex"
 SERVER="server/server.ex"
 
-CLIENT_REQUIREMENTS="-pa $JSON -pa $SHA2 -pa $UCRYPTO -r $SETTINGS -r $EJSON -r $COLORS -r $INFORM -r $CLIENT_HANDLER -r $CLIENT"
-SERVER_REQUIREMENTS="-pa $JSON -pa $SHA2 -pa $UCRYPTO  -r $SETTINGS -r $EJSON -r $COLORS -r $INFORM -r $USERS -r $SERVER_HANDLER -r $SERVER"
+BASE_REQUIREMENTS="-pa $JSON -pa $SHA2 -r $SETTINGS -r $EJSON -r $COLORS -r $INFORM -r $USERS"
+CLIENT_REQUIREMENTS="$BASE_REQUIREMENTS            -r $CLIENT_HANDLER -r $CLIENT"
+SERVER_REQUIREMENTS="$BASE_REQUIREMENTS -r $NOTIFY -r $SERVER_HANDLER -r $SERVER"
 
 
 if [ "$1" == "client" ]; then
-	eval "$CC $CLIENT_REQUIREMENTS client/start.ex"
+	echo $CC $CLIENT_REQUIREMENTS client/start.ex
+	$CC $CLIENT_REQUIREMENTS client/start.ex
 elif [ "$1" == "server" ]; then
-	eval "$CC $SERVER_REQUIREMENTS server/start.ex"
+	echo $CC $SERVER_REQUIREMENTS server/start.ex
+	$CC $SERVER_REQUIREMENTS server/start.ex
 fi
